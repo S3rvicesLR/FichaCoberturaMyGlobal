@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador Ficha My Global</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #f3f4f6;
+            --bg-panel: #ffffff;
+            --text-main: #1f2937;
+            --border-color: #d1d5db;
+            --input-bg: #f9fafb;
+            --header-title: #003399;
+            --box-bg: #e0f2fe;
+            --box-border: #0284c7;
+            --box-text: #0369a1;
+            --preview-bg: #e5e7eb;
+            --calc-bg: #eff6ff;
+            --calc-border: #93c5fd;
+            --calc-text: #1e40af;
+        }
+
+        /* --- TEMA OSCURO --- */
+        body.dark-mode {
+            --bg-body: #111827;
+            --bg-panel: #1f2937;
+            --text-main: #f3f4f6;
+            --border-color: #374151;
+            --input-bg: #374151;
+            --header-title: #60a5fa;
+            --box-bg: #1e293b;
+            --box-border: #38bdf8;
+            --box-text: #38bdf8;
+            --preview-bg: #111827;
+            --calc-bg: #1e293b;
+            --calc-border: #3b82f6;
+            --calc-text: #93c5fd;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        .app-container { display: flex; width: 100vw; height: 100vh; }
+
+        /* Panel de Controles (Formulario) */
+        .controls-panel {
+            width: 420px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; }
+        .header-title { font-size: 1.2rem; font-weight: 700; color: var(--header-title); }
+        .product-selector-box { background: var(--box-bg); border: 2px solid var(--box-border); padding: 10px; border-radius: 8px; }
+        .product-selector-box label { color: var(--box-text); font-weight: 800; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+        input, select {
+            width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; background-color: var(--input-bg); color: var(--text-main);
+        }
+        input:focus, select:focus { outline: none; border-color: #0072bc; }
+
+        .calculated-box {
+            background-color: var(--calc-bg); border: 1px dashed var(--calc-border); padding: 8px 10px; border-radius: 6px; font-size: 0.88rem; font-weight: 700; color: var(--calc-text);
+        }
+
+        .button-group { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .btn {
+            padding: 10px; border: none; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background-color: #0072bc; color: white; }
+        .btn-primary:hover { background-color: #005a96; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-reset { background-color: #6b7280; color: white; }
+        .btn-dark-mode { background-color: #4b5563; color: white; }
+        .btn-dark-mode:hover { background-color: #374151; }
+
+        .preview-panel { flex: 1; background: var(--preview-bg); display: flex; align-items: center; justify-content: center; padding: 20px; overflow: auto; }
+        .canvas-wrapper { box-shadow: 0 12px 30px rgba(0,0,0,0.15); border-radius: 8px; overflow: hidden; background: #fff; }
+
+        /* Contenedor principal de la imagen */
+        #image-container {
+            position: relative;
+            width: 500px;
+            height: 755px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Imágenes de fondo */
+        .mode-dental { background-image: url('ficha_myglobal.png'); }
+        .mode-accidente { background-image: url('ficha_accidente.png'); }
+
+        .overlay-field {
+            position: absolute; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 800; 
+            color: #0f2b5c; 
+            text-align: center;
+        }
+
+        /* --- POSICIONES PLAN TIPO 1: DENTAL / VISIÓN --- */
+        .mode-dental #val-nombre { top: 247px; left: 58px; width: 178px; height: 26px; font-size: 14px; }
+        .mode-dental #val-activo-dental { top: 247px; left: 325px; width: 166px; height: 26px; font-size: 15px; }
+        .mode-dental #val-prima { top: 362px; left: 42px; width: 170px; height: 26px; font-size: 16px; }
+        .mode-dental #val-cobertura-tipo { top: 412px; left: 42px; width: 170px; height: 26px; font-size: 14px; }
+        .mode-dental #val-cobertura-anual { top: 465px; left: 42px; width: 170px; height: 26px; font-size: 16px; }
+        .mode-dental #val-deducible { top: 352px; left: 288px; width: 170px; height: 26px; font-size: 16px; }
+        .mode-dental #val-activo-vision { top: 601px; left: 62px; width: 150px; height: 26px; font-size: 15px; color: #713f12; }
+
+        /* --- POSICIONES PLAN TIPO 2: ACCIDENTE (Nombre Centrado) --- */
+        .mode-accidente #val-nombre { top: 189.25px; left: 62px; width: 170px; height: 26px; font-size: 13px; justify-content: center; padding-left: 0; }
+        .mode-accidente #val-activo-dental { top: 234px; left: 96.46px; width: 155px; height: 26px; font-size: 13px; justify-content: flex-start; padding-left: 10px; }
+        .mode-accidente #val-prima { top: 187px; left: 364.36px; width: 165px; height: 26px; font-size: 13px; justify-content: flex-start; padding-left: 10px; }
+        .mode-accidente #val-cobertura-tipo { top: 224px; left: 308px; width: 165px; height: 26px; font-size: 12px; }
+        .mode-accidente #val-cobertura-anual,
+        .mode-accidente #val-deducible,
+        .mode-accidente #val-activo-vision { display: none !important; }
+
+        /* ========================================================= */
+        /*   REGLAS EXCLUSIVAS PARA IMPRIMIR / GUARDAR EN PDF        */
+        /* ========================================================= */
+        @media print {
+            body { background: none !important; height: auto !important; overflow: visible !important; }
+            .controls-panel { display: none !important; }
+            .preview-panel { padding: 0 !important; margin: 0 !important; background: none !important; display: block !important; }
+            .canvas-wrapper { box-shadow: none !important; border-radius: 0 !important; }
+            #image-container { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            @page {
+                size: 500px 755px;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="controls-panel">
+        <div class="header-container">
+            <h2 class="header-title">Generador de Fichas</h2>
+            <button class="btn btn-dark-mode" onclick="toggleDarkMode()" id="btnDarkModeToggle">🌙 Modo Oscuro</button>
+        </div>
+
+        <!-- Selector de Producto -->
+        <div class="form-group product-selector-box">
+            <label for="selectProducto">Seleccionar Producto:</label>
+            <select id="selectProducto" onchange="switchProduct()">
+                <option value="dental">Dental / Visión</option>
+                <option value="accidente">Accidente</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="inputNombre">1. Nombre y Apellidos:</label>
+            <input type="text" id="inputNombre" placeholder="Escribir nombre completo" oninput="updatePreview()">
+        </div>
+
+        <div class="form-group">
+            <label for="inputFechaDental" id="labelFechaInicial">2. Activo a partir de (Dental):</label>
+            <input type="date" id="inputFechaDental" onchange="handleDateChange()">
+        </div>
+
+        <div class="form-group">
+            <label for="inputPrima">3. Prima Mensual:</label>
+            <input type="text" id="inputPrima" placeholder="Ej: $50" oninput="updatePreview()">
+        </div>
+
+        <div class="form-group">
+            <label for="selectTipo">4. Tipo de Cobertura:</label>
+            <select id="selectTipo" onchange="updatePreview()">
+                <option value="">-- SELECCIONAR --</option>
+                <option value="INDIVIDUAL">INDIVIDUAL</option>
+                <option value="FAMILIAR">FAMILIAR</option>
+                <option value="EN PAREJA">EN PAREJA</option>
+                <option value="PADRE E HIJO">PADRE E HIJO</option>
+            </select>
+        </div>
+
+        <!-- Campos exclusivos de Dental / Visión -->
+        <div class="form-group dental-only">
+            <label for="selectAnual">5. Cobertura Anual Aprobada:</label>
+            <select id="selectAnual" onchange="updatePreview()">
+                <option value="">-- Seleccionar --</option>
+                <option value="$1,000">$1,000</option>
+                <option value="$1,500">$1,500</option>
+                <option value="$2,000">$2,000</option>
+                <option value="$2,500">$2,500</option>
+                <option value="$3,000">$3,000</option>
+                <option value="$3,500">$3,500</option>
+                <option value="$4,000">$4,000</option>
+                <option value="$4,500">$4,500</option>
+                <option value="$5,000">$5,000</option>
+            </select>
+        </div>
+
+        <div class="form-group dental-only">
+            <label for="selectDeducible">6. Monto del Deducible:</label>
+            <select id="selectDeducible" onchange="updatePreview()">
+                <option value="">-- Seleccionar --</option>
+                <option value="$0">$0</option>
+                <option value="$50">$50</option>
+                <option value="$100">$100</option>
+            </select>
+        </div>
+
+        <div class="form-group dental-only">
+            <label>7. Activo a partir de (Visión - +6 Meses):</label>
+            <div id="calculatedVisionDate" class="calculated-box">Seleccione la fecha inicial arriba</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="downloadPDF()">📄 Descargar PDF</button>
+            <button class="btn btn-success" onclick="imprimirPlantilla()">🖨️ Guardar PDF / Imprimir</button>
+            <button class="btn btn-reset" onclick="resetAndNext()">🔄 Siguiente Cliente (Limpiar)</button>
+        </div>
+    </div>
+
+    <div class="preview-panel">
+        <div class="canvas-wrapper">
+            <div id="image-container" class="mode-dental">
+                <div id="val-nombre" class="overlay-field"></div>
+                <div id="val-activo-dental" class="overlay-field"></div>
+                <div id="val-prima" class="overlay-field"></div>
+                <div id="val-cobertura-tipo" class="overlay-field"></div>
+                <div id="val-cobertura-anual" class="overlay-field"></div>
+                <div id="val-deducible" class="overlay-field"></div>
+                <div id="val-activo-vision" class="overlay-field"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const btn = document.getElementById('btnDarkModeToggle');
+        if (document.body.classList.contains('dark-mode')) {
+            btn.innerText = '☀️ Modo Claro';
+        } else {
+            btn.innerText = '🌙 Modo Oscuro';
+        }
+    }
+
+    function formatDateDDMMYYYY(date) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    function switchProduct() {
+        const prod = document.getElementById('selectProducto').value;
+        const container = document.getElementById('image-container');
+        const dentalFields = document.querySelectorAll('.dental-only');
+
+        if (prod === 'accidente') {
+            container.className = 'mode-accidente';
+            dentalFields.forEach(el => el.style.display = 'none');
+            document.getElementById('labelFechaInicial').innerText = '2. Activo a partir de:';
+        } else {
+            container.className = 'mode-dental';
+            dentalFields.forEach(el => el.style.display = 'flex');
+            document.getElementById('labelFechaInicial').innerText = '2. Activo a partir de (Dental):';
+        }
+        handleDateChange();
+        updatePreview();
+    }
+
+    function handleDateChange() {
+        const dateVal = document.getElementById('inputFechaDental').value;
+        const prod = document.getElementById('selectProducto').value;
+
+        if (dateVal) {
+            const parts = dateVal.split('-');
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+
+            const initialDate = new Date(year, month, day);
+            const dentalFormatted = formatDateDDMMYYYY(initialDate);
+
+            document.getElementById('val-activo-dental').innerText = dentalFormatted;
+
+            if (prod === 'dental') {
+                const visionDate = new Date(year, month + 6, day);
+                const visionFormatted = formatDateDDMMYYYY(visionDate);
+                document.getElementById('calculatedVisionDate').innerText = visionFormatted;
+                document.getElementById('val-activo-vision').innerText = visionFormatted;
+            } else {
+                document.getElementById('val-activo-vision').innerText = "";
+            }
+        } else {
+            document.getElementById('calculatedVisionDate').innerText = "Seleccione la fecha inicial arriba";
+            document.getElementById('val-activo-dental').innerText = "";
+            document.getElementById('val-activo-vision').innerText = "";
+        }
+    }
+
+    function updatePreview() {
+        document.getElementById('val-nombre').innerText = document.getElementById('inputNombre').value;
+        document.getElementById('val-prima').innerText = document.getElementById('inputPrima').value;
+        document.getElementById('val-cobertura-tipo').innerText = document.getElementById('selectTipo').value;
+        document.getElementById('val-cobertura-anual').innerText = document.getElementById('selectAnual').value;
+        document.getElementById('val-deducible').innerText = document.getElementById('selectDeducible').value;
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('image-container');
+        const nombre = document.getElementById('inputNombre').value || "Cliente";
+        const prod = document.getElementById('selectProducto').value;
+
+        const opt = {
+            margin: 0,
+            filename: `Ficha_${prod}_${nombre.replace(/\s+/g, '_')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+            jsPDF: { unit: 'px', format: [500, 755], orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+
+    function imprimirPlantilla() {
+        window.print();
+    }
+
+    function resetAndNext() {
+        document.getElementById('inputNombre').value = "";
+        document.getElementById('inputFechaDental').value = "";
+        document.getElementById('inputPrima').value = "";
+        document.getElementById('selectTipo').value = "";
+        document.getElementById('selectAnual').value = "";
+        document.getElementById('selectDeducible').value = "";
+        document.getElementById('calculatedVisionDate').innerText = "Seleccione la fecha inicial arriba";
+
+        document.getElementById('val-nombre').innerText = "";
+        document.getElementById('val-activo-dental').innerText = "";
+        document.getElementById('val-prima').innerText = "";
+        document.getElementById('val-cobertura-tipo').innerText = "";
+        document.getElementById('val-cobertura-anual').innerText = "";
+        document.getElementById('val-deducible').innerText = "";
+        document.getElementById('val-activo-vision').innerText = "";
+    }
+</script>
+
+</body>
+</html>
