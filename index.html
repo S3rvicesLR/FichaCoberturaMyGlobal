@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador Ficha My Global</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Se incluye html2canvas para la generación de imagen en alta resolución (PNG HD) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -222,7 +223,7 @@
         </div>
 
         <div class="button-group">
-            <button class="btn btn-primary" onclick="downloadPDF()">📄 Descargar PDF</button>
+            <button class="btn btn-primary" onclick="downloadImage()">🖼️ Descargar Imagen (PNG HD)</button>
             <button class="btn btn-success" onclick="imprimirPlantilla()">🖨️ Guardar PDF / Imprimir</button>
             <button class="btn btn-reset" onclick="resetAndNext()">🔄 Siguiente Cliente (Limpiar)</button>
         </div>
@@ -317,19 +318,24 @@
         document.getElementById('val-deducible').innerText = document.getElementById('selectDeducible').value;
     }
 
-    function downloadPDF() {
+    // Descarga directa en formato Imagen (PNG) en Alta Definición (HD) sin borrosidad
+    function downloadImage() {
         const element = document.getElementById('image-container');
         const nombre = document.getElementById('inputNombre').value || "Cliente";
         const prod = document.getElementById('selectProducto').value;
 
-        const opt = {
-            margin: 0,
-            filename: `Ficha_${prod}_${nombre.replace(/\s+/g, '_')}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-            jsPDF: { unit: 'px', format: [500, 755], orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
+        // scale: 3 triplica la resolución para evitar cualquier tipo de borrosidad
+        html2canvas(element, {
+            scale: 3, 
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Ficha_${prod}_${nombre.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        });
     }
 
     function imprimirPlantilla() {
