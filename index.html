@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador Ficha My Global</title>
-    <!-- Se incluye html2canvas para la generación de imagen en alta resolución (PNG HD) -->
+    <!-- Librería html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Librerías de Google API -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -81,6 +85,8 @@
         }
         .btn-primary { background-color: #0072bc; color: white; }
         .btn-primary:hover { background-color: #005a96; }
+        .btn-drive { background-color: #059669; color: white; }
+        .btn-drive:hover { background-color: #047857; }
         .btn-success { background-color: #10b981; color: white; }
         .btn-reset { background-color: #6b7280; color: white; }
         .btn-dark-mode { background-color: #4b5563; color: white; }
@@ -89,18 +95,24 @@
         .preview-panel { flex: 1; background: var(--preview-bg); display: flex; align-items: center; justify-content: center; padding: 20px; overflow: auto; }
         .canvas-wrapper { box-shadow: 0 12px 30px rgba(0,0,0,0.15); border-radius: 8px; overflow: hidden; background: #fff; }
 
-        /* Contenedor principal de la imagen */
+        /* Contenedor principal de la plantilla */
         #image-container {
             position: relative;
             width: 500px;
             height: 755px;
-            background-size: cover;
-            background-position: center;
+            background: #ffffff;
         }
 
-        /* Imágenes de fondo */
-        .mode-dental { background-image: url('ficha_myglobal.png'); }
-        .mode-accidente { background-image: url('ficha_accidente.png'); }
+        /* Imagen de fondo en HTML para máxima resolución */
+        #bg-template-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            z-index: 1;
+        }
 
         .overlay-field {
             position: absolute; 
@@ -110,6 +122,7 @@
             font-weight: 800; 
             color: #0f2b5c; 
             text-align: center;
+            z-index: 2;
         }
 
         /* --- POSICIONES PLAN TIPO 1: DENTAL / VISIÓN --- */
@@ -121,7 +134,7 @@
         .mode-dental #val-deducible { top: 352px; left: 288px; width: 170px; height: 26px; font-size: 16px; }
         .mode-dental #val-activo-vision { top: 601px; left: 62px; width: 150px; height: 26px; font-size: 15px; color: #713f12; }
 
-        /* --- POSICIONES PLAN TIPO 2: ACCIDENTE (Nombre Centrado) --- */
+        /* --- POSICIONES PLAN TIPO 2: ACCIDENTE --- */
         .mode-accidente #val-nombre { top: 189.25px; left: 62px; width: 170px; height: 26px; font-size: 13px; justify-content: center; padding-left: 0; }
         .mode-accidente #val-activo-dental { top: 234px; left: 96.46px; width: 155px; height: 26px; font-size: 13px; justify-content: flex-start; padding-left: 10px; }
         .mode-accidente #val-prima { top: 187px; left: 364.36px; width: 165px; height: 26px; font-size: 13px; justify-content: flex-start; padding-left: 10px; }
@@ -130,9 +143,7 @@
         .mode-accidente #val-deducible,
         .mode-accidente #val-activo-vision { display: none !important; }
 
-        /* ========================================================= */
-        /*   REGLAS EXCLUSIVAS PARA IMPRIMIR / GUARDAR EN PDF        */
-        /* ========================================================= */
+        /* REGLAS EXCLUSIVAS PARA IMPRIMIR / GUARDAR EN PDF */
         @media print {
             body { background: none !important; height: auto !important; overflow: visible !important; }
             .controls-panel { display: none !important; }
@@ -223,7 +234,8 @@
         </div>
 
         <div class="button-group">
-            <button class="btn btn-primary" onclick="downloadImage()">🖼️ Descargar Imagen (PNG HD)</button>
+            <button class="btn btn-drive" onclick="subirAGoogleDrive()">☁️ Guardar en Google Drive</button>
+            <button class="btn btn-primary" onclick="downloadImage()">🖼️ Descargar Ficha</button>
             <button class="btn btn-success" onclick="imprimirPlantilla()">🖨️ Guardar PDF / Imprimir</button>
             <button class="btn btn-reset" onclick="resetAndNext()">🔄 Siguiente Cliente (Limpiar)</button>
         </div>
@@ -232,6 +244,9 @@
     <div class="preview-panel">
         <div class="canvas-wrapper">
             <div id="image-container" class="mode-dental">
+                <!-- Imagen renderizada directamente en HTML -->
+                <img id="bg-template-img" src="ficha_myglobal.png" alt="Plantilla Base">
+                
                 <div id="val-nombre" class="overlay-field"></div>
                 <div id="val-activo-dental" class="overlay-field"></div>
                 <div id="val-prima" class="overlay-field"></div>
@@ -245,6 +260,119 @@
 </div>
 
 <script>
+    /* =========================================================
+       CONFIGURACIÓN GOOGLE DRIVE API
+       ========================================================= */
+    const CLIENT_ID = '200321082265-9jsgsmgm7ei0jrgqs16k5drpv9o6llh.apps.googleusercontent.com';
+    const API_KEY = 'AIzaSyDebntoFWjqv6m2QR8Y1OkoRIb3UWHusdQ';
+    const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+    const FOLDER_IDS = {
+      accidente: '1ulOP3iO80iuMA9XdZdVXduws-0U93R7C',
+      dental: '1zIndIvzJRQWKVrG6UPSFX0hqA1-wyurD'
+    };
+
+    let tokenClient;
+    let gapiInited = false;
+    let gsisInited = false;
+
+    function gapiLoaded() {
+      gapi.load('client', async () => {
+        await gapi.client.init({
+          apiKey: API_KEY,
+          discoveryDocs: [DISCOVERY_DOC],
+        });
+        gapiInited = true;
+      });
+    }
+
+    function gsiLoaded() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: '', 
+      });
+      gsisInited = true;
+    }
+
+    window.onload = () => {
+      gapiLoaded();
+      gsiLoaded();
+    };
+
+    function subirAGoogleDrive() {
+        const element = document.getElementById('image-container');
+        const nombre = document.getElementById('inputNombre').value || "Cliente";
+        const prod = document.getElementById('selectProducto').value; // 'dental' o 'accidente'
+
+        if (!gapiInited || !gsisInited) {
+          alert('Las APIs de Google aún se están cargando. Reintenta en unos segundos.');
+          return;
+        }
+
+        tokenClient.callback = async (resp) => {
+          if (resp.error) {
+            console.error('Error de autenticación:', resp);
+            alert('Error al autenticar la cuenta de Google.');
+            return;
+          }
+
+          html2canvas(element, {
+              scale: 4,
+              useCORS: true,
+              allowTaint: true,
+              logging: false,
+              width: 500,
+              height: 755
+          }).then(canvas => {
+              canvas.toBlob(async (blob) => {
+                const folderId = FOLDER_IDS[prod] || FOLDER_IDS['accidente'];
+                const nombreArchivo = `Ficha_${prod}_${nombre.replace(/\s+/g, '_')}.png`;
+
+                const metadata = {
+                  name: nombreArchivo,
+                  mimeType: 'image/png',
+                  parents: [folderId]
+                };
+
+                const accessToken = gapi.client.getToken().access_token;
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                form.append('file', blob);
+
+                try {
+                  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                    method: 'POST',
+                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                    body: form
+                  });
+
+                  const resData = await response.json();
+                  if (resData.id) {
+                    alert(`¡Ficha guardada exitosamente en Google Drive dentro de la carpeta: ${prod.toUpperCase()}!`);
+                  } else {
+                    alert('Ocurrió un error al subir el archivo.');
+                    console.error(resData);
+                  }
+                } catch (err) {
+                  console.error('Error en la subida:', err);
+                  alert('Error al conectar con Google Drive.');
+                }
+              }, 'image/png');
+          });
+        };
+
+        if (gapi.client.getToken() === null) {
+          tokenClient.requestAccessToken({ prompt: 'consent' });
+        } else {
+          tokenClient.requestAccessToken({ prompt: '' });
+        }
+    }
+
+    /* =========================================================
+       FUNCIONES ORIGINALES DE LA APLICACIÓN
+       ========================================================= */
     function toggleDarkMode() {
         document.body.classList.toggle('dark-mode');
         const btn = document.getElementById('btnDarkModeToggle');
@@ -265,14 +393,17 @@
     function switchProduct() {
         const prod = document.getElementById('selectProducto').value;
         const container = document.getElementById('image-container');
+        const bgImg = document.getElementById('bg-template-img');
         const dentalFields = document.querySelectorAll('.dental-only');
 
         if (prod === 'accidente') {
             container.className = 'mode-accidente';
+            bgImg.src = 'ficha_accidente.png';
             dentalFields.forEach(el => el.style.display = 'none');
             document.getElementById('labelFechaInicial').innerText = '2. Activo a partir de:';
         } else {
             container.className = 'mode-dental';
+            bgImg.src = 'ficha_myglobal.png';
             dentalFields.forEach(el => el.style.display = 'flex');
             document.getElementById('labelFechaInicial').innerText = '2. Activo a partir de (Dental):';
         }
@@ -318,18 +449,19 @@
         document.getElementById('val-deducible').innerText = document.getElementById('selectDeducible').value;
     }
 
-    // Descarga directa en formato Imagen (PNG) en Alta Definición (HD) sin borrosidad
+    // Generación de imagen alta definición
     function downloadImage() {
         const element = document.getElementById('image-container');
         const nombre = document.getElementById('inputNombre').value || "Cliente";
         const prod = document.getElementById('selectProducto').value;
 
-        // scale: 3 triplica la resolución para evitar cualquier tipo de borrosidad
         html2canvas(element, {
-            scale: 3, 
+            scale: 4,
             useCORS: true,
             allowTaint: true,
-            backgroundColor: null
+            logging: false,
+            width: 500,
+            height: 755
         }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Ficha_${prod}_${nombre.replace(/\s+/g, '_')}.png`;
