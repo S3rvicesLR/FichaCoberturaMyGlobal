@@ -304,7 +304,7 @@
     function subirAGoogleDrive() {
         const element = document.getElementById('image-container');
         const nombre = document.getElementById('inputNombre').value || "Cliente";
-        const prod = document.getElementById('selectProducto').value; // 'dental' o 'accidente'
+        const prod = document.getElementById('selectProducto').value;
 
         if (!gapiInited || !gsisInited) {
           alert('Las APIs de Google aún se están cargando. Reintenta en unos segundos.');
@@ -336,7 +336,7 @@
                   parents: [folderId]
                 };
 
-                const accessToken = gapi.client.getToken().access_token;
+                const accessToken = gapi.client.getToken()?.access_token || resp.access_token;
                 const form = new FormData();
                 form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
                 form.append('file', blob);
