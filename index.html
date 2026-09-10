@@ -265,7 +265,6 @@
        ========================================================= */
     const CLIENT_ID = '200321082265-9jsgsmgm7ei0jrgqs16k5drpv9o6llh.apps.googleusercontent.com';
     const API_KEY = 'AIzaSyDebntoFWjqv6m2QR8Y1OkoRIb3UWHusdQ';
-    const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
     const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
     const FOLDER_IDS = {
@@ -274,100 +273,98 @@
     };
 
     let tokenClient;
-    let gapiInited = false;
-    let gsisInited = false;
+    let accessToken = null;
 
-    function gapiLoaded() {
-      gapi.load('client', async () => {
-        await gapi.client.init({
-          apiKey: API_KEY,
-          discoveryDocs: [DISCOVERY_DOC],
+    function initGoogleClient() {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    accessToken = tokenResponse.access_token;
+                    ejecutarSubidaADrive();
+                } else {
+                    alert('No se pudo obtener el permiso para acceder a Google Drive.');
+                }
+            },
         });
-        gapiInited = true;
-      });
-    }
-
-    function gsiLoaded() {
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: '', 
-      });
-      gsisInited = true;
     }
 
     window.onload = () => {
-      gapiLoaded();
-      gsiLoaded();
+        // Carga diferida de scripts de Google Identity Services
+        let checkGsi = setInterval(() => {
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+                clearInterval(checkGsi);
+                initGoogleClient();
+            }
+        }, 300);
     };
 
     function subirAGoogleDrive() {
+        if (!tokenClient) {
+            alert('Las librerías de Google aún no han cargado. Intenta nuevamente en 3 segundos.');
+            return;
+        }
+
+        // Si no tenemos token activo, solicita uno abriendo la ventana emergente
+        if (!accessToken) {
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+        } else {
+            ejecutarSubidaADrive();
+        }
+    }
+
+    async function ejecutarSubidaADrive() {
         const element = document.getElementById('image-container');
         const nombre = document.getElementById('inputNombre').value || "Cliente";
         const prod = document.getElementById('selectProducto').value;
 
-        if (!gapiInited || !gsisInited) {
-          alert('Las APIs de Google aún se están cargando. Reintenta en unos segundos.');
-          return;
-        }
-
-        tokenClient.callback = async (resp) => {
-          if (resp.error) {
-            console.error('Error de autenticación:', resp);
-            alert('Error al autenticar la cuenta de Google.');
-            return;
-          }
-
-          html2canvas(element, {
-              scale: 4,
-              useCORS: true,
-              allowTaint: true,
-              logging: false,
-              width: 500,
-              height: 755
-          }).then(canvas => {
-              canvas.toBlob(async (blob) => {
+        html2canvas(element, {
+            scale: 4,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            width: 500,
+            height: 755
+        }).then(canvas => {
+            canvas.toBlob(async (blob) => {
                 const folderId = FOLDER_IDS[prod] || FOLDER_IDS['accidente'];
                 const nombreArchivo = `Ficha_${prod}_${nombre.replace(/\s+/g, '_')}.png`;
 
                 const metadata = {
-                  name: nombreArchivo,
-                  mimeType: 'image/png',
-                  parents: [folderId]
+                    name: nombreArchivo,
+                    mimeType: 'image/png',
+                    parents: [folderId]
                 };
 
-                const accessToken = gapi.client.getToken()?.access_token || resp.access_token;
                 const form = new FormData();
                 form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
                 form.append('file', blob);
 
                 try {
-                  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                    method: 'POST',
-                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
-                    body: form
-                  });
+                    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                        method: 'POST',
+                        headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                        body: form
+                    });
 
-                  const resData = await response.json();
-                  if (resData.id) {
-                    alert(`¡Ficha guardada exitosamente en Google Drive dentro de la carpeta: ${prod.toUpperCase()}!`);
-                  } else {
-                    alert('Ocurrió un error al subir el archivo.');
-                    console.error(resData);
-                  }
+                    const resData = await response.json();
+                    if (resData.id) {
+                        alert(`¡Ficha guardada exitosamente en Google Drive dentro de la carpeta: ${prod.toUpperCase()}!`);
+                    } else if (resData.error && resData.error.code === 401) {
+                        // El token venció o no es válido, reiniciar y reintentar
+                        accessToken = null;
+                        tokenClient.requestAccessToken({ prompt: '' });
+                    } else {
+                        alert('Ocurrió un error al subir el archivo a Google Drive.');
+                        console.error(resData);
+                    }
                 } catch (err) {
-                  console.error('Error en la subida:', err);
-                  alert('Error al conectar con Google Drive.');
+                    console.error('Error en la subida:', err);
+                    alert('Error de red al conectar con Google Drive.');
                 }
-              }, 'image/png');
-          });
-        };
-
-        if (gapi.client.getToken() === null) {
-          tokenClient.requestAccessToken({ prompt: 'consent' });
-        } else {
-          tokenClient.requestAccessToken({ prompt: '' });
-        }
+            }, 'image/png');
+        });
     }
 
     /* =========================================================
