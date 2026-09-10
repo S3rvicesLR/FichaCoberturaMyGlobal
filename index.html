@@ -263,7 +263,7 @@
     /* =========================================================
        CONFIGURACIÓN GOOGLE DRIVE API
        ========================================================= */
-    const CLIENT_ID = '200321082265-9jsgsmgm7ei0jrgqs16k5drpv9o6llh.apps.googleusercontent.com';
+    const CLIENT_ID = '200321082265-o73as5jo6ho4aj618p495eji2obdt4e6.apps.googleusercontent.com';
     const API_KEY = 'AIzaSyDebntoFWjqv6m2QR8Y1OkoRIb3UWHusdQ';
     const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
@@ -291,7 +291,6 @@
     }
 
     window.onload = () => {
-        // Carga diferida de scripts de Google Identity Services
         let checkGsi = setInterval(() => {
             if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
                 clearInterval(checkGsi);
@@ -306,7 +305,6 @@
             return;
         }
 
-        // Si no tenemos token activo, solicita uno abriendo la ventana emergente
         if (!accessToken) {
             tokenClient.requestAccessToken({ prompt: 'consent' });
         } else {
@@ -352,7 +350,6 @@
                     if (resData.id) {
                         alert(`¡Ficha guardada exitosamente en Google Drive dentro de la carpeta: ${prod.toUpperCase()}!`);
                     } else if (resData.error && resData.error.code === 401) {
-                        // El token venció o no es válido, reiniciar y reintentar
                         accessToken = null;
                         tokenClient.requestAccessToken({ prompt: '' });
                     } else {
@@ -446,7 +443,6 @@
         document.getElementById('val-deducible').innerText = document.getElementById('selectDeducible').value;
     }
 
-    // Generación de imagen alta definición
     function downloadImage() {
         const element = document.getElementById('image-container');
         const nombre = document.getElementById('inputNombre').value || "Cliente";
