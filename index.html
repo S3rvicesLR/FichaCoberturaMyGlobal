@@ -28,7 +28,6 @@
             --calc-text: #1e40af;
         }
 
-        /* --- TEMA OSCURO --- */
         body.dark-mode {
             --bg-body: #111827;
             --bg-panel: #1f2937;
@@ -49,7 +48,6 @@
         body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
         .app-container { display: flex; width: 100vw; height: 100vh; }
 
-        /* Panel de Controles (Formulario) */
         .controls-panel {
             width: 420px;
             background: var(--bg-panel);
@@ -95,7 +93,6 @@
         .preview-panel { flex: 1; background: var(--preview-bg); display: flex; align-items: center; justify-content: center; padding: 20px; overflow: auto; }
         .canvas-wrapper { box-shadow: 0 12px 30px rgba(0,0,0,0.15); border-radius: 8px; overflow: hidden; background: #fff; }
 
-        /* Contenedor principal de la plantilla */
         #image-container {
             position: relative;
             width: 500px;
@@ -103,7 +100,6 @@
             background: #ffffff;
         }
 
-        /* Imagen de fondo en HTML para máxima resolución */
         #bg-template-img {
             position: absolute;
             top: 0;
@@ -126,24 +122,25 @@
         }
 
         /* --- POSICIONES PLAN TIPO 1: DENTAL / VISIÓN --- */
-        .mode-dental #val-nombre { top: 247px; left: 58px; width: 178px; height: 26px; font-size: 14px; }
-        .mode-dental #val-activo-dental { top: 247px; left: 325px; width: 166px; height: 26px; font-size: 15px; }
-        .mode-dental #val-prima { top: 362px; left: 42px; width: 170px; height: 26px; font-size: 16px; }
-        .mode-dental #val-cobertura-tipo { top: 412px; left: 42px; width: 170px; height: 26px; font-size: 14px; }
-        .mode-dental #val-cobertura-anual { top: 465px; left: 42px; width: 170px; height: 26px; font-size: 16px; }
-        .mode-dental #val-deducible { top: 352px; left: 288px; width: 170px; height: 26px; font-size: 16px; }
-        .mode-dental #val-activo-vision { top: 601px; left: 62px; width: 150px; height: 26px; font-size: 15px; color: #713f12; }
+        .mode-dental #val-nombre { top: 239.5px; left: 167.6px; width: 178px; height: 26px; font-size: 14px; }
+        .mode-dental #val-poliza { top: 296.2px; left: 309.8px; width: 166px; height: 26px; font-size: 14px; }
+        .mode-dental #val-activo-dental { top: 296.1px; left: 56.7px; width: 166px; height: 26px; font-size: 15px; }
+        .mode-dental #val-prima { top: 399.7px; left: 49.6px; width: 170px; height: 26px; font-size: 16px; }
+        .mode-dental #val-cobertura-tipo { top: 451.6px; left: 53.3px; width: 170px; height: 26px; font-size: 14px; }
+        .mode-dental #val-cobertura-anual { top: 506.5px; left: 53.3px; width: 170px; height: 26px; font-size: 16px; }
+        .mode-dental #val-deducible { top: 393.5px; left: 299.3px; width: 170px; height: 26px; font-size: 16px; }
+        .mode-dental #val-activo-vision { top: 635px; left: 58.2px; width: 180px; height: 26px; font-size: 15px; color: #713f12; display: flex !important; }
 
         /* --- POSICIONES PLAN TIPO 2: ACCIDENTE --- */
-        .mode-accidente #val-nombre { top: 189.25px; left: 62px; width: 170px; height: 26px; font-size: 13px; justify-content: center; padding-left: 0; }
-        .mode-accidente #val-activo-dental { top: 234px; left: 96.46px; width: 155px; height: 26px; font-size: 13px; justify-content: flex-start; padding-left: 10px; }
-        .mode-accidente #val-prima { top: 187px; left: 364.36px; width: 165px; height: 26px; font-size: 13px; justify-content: flex-start; padding-left: 10px; }
-        .mode-accidente #val-cobertura-tipo { top: 224px; left: 308px; width: 165px; height: 26px; font-size: 12px; }
+        .mode-accidente #val-nombre { top: 192.9px; left: 82px; width: 350px; height: 26px; font-size: 14px; justify-content: center; }
+        .mode-accidente #val-poliza { top: 245.3px; left: 74.4px; width: 150px; height: 26px; font-size: 14px; justify-content: center; }
+        .mode-accidente #val-activo-dental { top: 243px; left: 318.2px; width: 150px; height: 26px; font-size: 14px; justify-content: center; }
+        .mode-accidente #val-prima { top: 303.1px; left: 74.4px; width: 150px; height: 26px; font-size: 14px; justify-content: center; }
+        .mode-accidente #val-cobertura-tipo { top: 303.1px; left: 318.2px; width: 150px; height: 26px; font-size: 13px; justify-content: center; }
         .mode-accidente #val-cobertura-anual,
         .mode-accidente #val-deducible,
         .mode-accidente #val-activo-vision { display: none !important; }
 
-        /* REGLAS EXCLUSIVAS PARA IMPRIMIR / GUARDAR EN PDF */
         @media print {
             body { background: none !important; height: auto !important; overflow: visible !important; }
             .controls-panel { display: none !important; }
@@ -166,7 +163,6 @@
             <button class="btn btn-dark-mode" onclick="toggleDarkMode()" id="btnDarkModeToggle">🌙 Modo Oscuro</button>
         </div>
 
-        <!-- Selector de Producto -->
         <div class="form-group product-selector-box">
             <label for="selectProducto">Seleccionar Producto:</label>
             <select id="selectProducto" onchange="switchProduct()">
@@ -181,17 +177,22 @@
         </div>
 
         <div class="form-group">
-            <label for="inputFechaDental" id="labelFechaInicial">2. Activo a partir de (Dental):</label>
-            <input type="date" id="inputFechaDental" onchange="handleDateChange()">
+            <label for="inputPoliza">2. ID Póliza:</label>
+            <input type="text" id="inputPoliza" placeholder="Ej: POL-123456" oninput="updatePreview()">
         </div>
 
         <div class="form-group">
-            <label for="inputPrima">3. Prima Mensual:</label>
+            <label for="inputFechaDental" id="labelFechaInicial">3. Activo a partir de (MM/DD/YYYY):</label>
+            <input type="text" id="inputFechaDental" placeholder="MM/DD/YYYY" oninput="handleDateChange()" onpaste="setTimeout(handleDateChange, 50)">
+        </div>
+
+        <div class="form-group">
+            <label for="inputPrima">4. Prima Mensual:</label>
             <input type="text" id="inputPrima" placeholder="Ej: $50" oninput="updatePreview()">
         </div>
 
         <div class="form-group">
-            <label for="selectTipo">4. Tipo de Cobertura:</label>
+            <label for="selectTipo">5. Tipo de Cobertura:</label>
             <select id="selectTipo" onchange="updatePreview()">
                 <option value="">-- SELECCIONAR --</option>
                 <option value="INDIVIDUAL">INDIVIDUAL</option>
@@ -201,9 +202,8 @@
             </select>
         </div>
 
-        <!-- Campos exclusivos de Dental / Visión -->
         <div class="form-group dental-only">
-            <label for="selectAnual">5. Cobertura Anual Aprobada:</label>
+            <label for="selectAnual">6. Cobertura Anual Aprobada:</label>
             <select id="selectAnual" onchange="updatePreview()">
                 <option value="">-- Seleccionar --</option>
                 <option value="$1,000">$1,000</option>
@@ -219,7 +219,7 @@
         </div>
 
         <div class="form-group dental-only">
-            <label for="selectDeducible">6. Monto del Deducible:</label>
+            <label for="selectDeducible">7. Monto del Deducible:</label>
             <select id="selectDeducible" onchange="updatePreview()">
                 <option value="">-- Seleccionar --</option>
                 <option value="$0">$0</option>
@@ -229,8 +229,8 @@
         </div>
 
         <div class="form-group dental-only">
-            <label>7. Activo a partir de (Visión - +6 Meses):</label>
-            <div id="calculatedVisionDate" class="calculated-box">Seleccione la fecha inicial arriba</div>
+            <label>8. Activo a partir de (Visión - +6 Meses):</label>
+            <div id="calculatedVisionDate" class="calculated-box">Ingrese la fecha inicial arriba</div>
         </div>
 
         <div class="button-group">
@@ -244,10 +244,10 @@
     <div class="preview-panel">
         <div class="canvas-wrapper">
             <div id="image-container" class="mode-dental">
-                <!-- Imagen renderizada directamente en HTML -->
                 <img id="bg-template-img" src="ficha_myglobal.png" alt="Plantilla Base">
                 
                 <div id="val-nombre" class="overlay-field"></div>
+                <div id="val-poliza" class="overlay-field"></div>
                 <div id="val-activo-dental" class="overlay-field"></div>
                 <div id="val-prima" class="overlay-field"></div>
                 <div id="val-cobertura-tipo" class="overlay-field"></div>
@@ -260,9 +260,6 @@
 </div>
 
 <script>
-    /* =========================================================
-       CONFIGURACIÓN GOOGLE DRIVE API
-       ========================================================= */
     const CLIENT_ID = '200321082265-o73as5jo6ho4aj618p495eji2obdt4e6.apps.googleusercontent.com';
     const API_KEY = 'AIzaSyDebntoFWjqv6m2QR8Y1OkoRIb3UWHusdQ';
     const SCOPES = 'https://www.googleapis.com/auth/drive.file';
@@ -364,9 +361,6 @@
         });
     }
 
-    /* =========================================================
-       FUNCIONES ORIGINALES DE LA APLICACIÓN
-       ========================================================= */
     function toggleDarkMode() {
         document.body.classList.toggle('dark-mode');
         const btn = document.getElementById('btnDarkModeToggle');
@@ -377,11 +371,42 @@
         }
     }
 
-    function formatDateDDMMYYYY(date) {
-        const day = String(date.getDate()).padStart(2, '0');
+    function formatDateMMDDYYYY(date) {
         const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
         const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
+        return `${month}/${day}/${year}`;
+    }
+
+    function parseInputDate(str) {
+        if (!str) return null;
+        str = str.trim();
+        let parts = [];
+        
+        if (str.includes('/')) {
+            parts = str.split('/');
+        } else if (str.includes('-')) {
+            parts = str.split('-');
+        }
+
+        if (parts.length === 3) {
+            let m, d, y;
+            if (parts[0].length === 4) {
+                y = parseInt(parts[0], 10);
+                m = parseInt(parts[1], 10) - 1;
+                d = parseInt(parts[2], 10);
+            } else {
+                m = parseInt(parts[0], 10) - 1;
+                d = parseInt(parts[1], 10);
+                y = parseInt(parts[2], 10);
+            }
+
+            const parsedDate = new Date(y, m, d);
+            if (!isNaN(parsedDate.getTime())) {
+                return parsedDate;
+            }
+        }
+        return null;
     }
 
     function switchProduct() {
@@ -394,49 +419,44 @@
             container.className = 'mode-accidente';
             bgImg.src = 'ficha_accidente.png';
             dentalFields.forEach(el => el.style.display = 'none');
-            document.getElementById('labelFechaInicial').innerText = '2. Activo a partir de:';
+            document.getElementById('labelFechaInicial').innerText = '3. Activo a partir de (MM/DD/YYYY):';
         } else {
             container.className = 'mode-dental';
             bgImg.src = 'ficha_myglobal.png';
             dentalFields.forEach(el => el.style.display = 'flex');
-            document.getElementById('labelFechaInicial').innerText = '2. Activo a partir de (Dental):';
+            document.getElementById('labelFechaInicial').innerText = '3. Activo a partir de (Dental - MM/DD/YYYY):';
         }
         handleDateChange();
         updatePreview();
     }
 
     function handleDateChange() {
-        const dateVal = document.getElementById('inputFechaDental').value;
+        const inputVal = document.getElementById('inputFechaDental').value;
         const prod = document.getElementById('selectProducto').value;
+        const parsedDate = parseInputDate(inputVal);
 
-        if (dateVal) {
-            const parts = dateVal.split('-');
-            const year = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1;
-            const day = parseInt(parts[2], 10);
-
-            const initialDate = new Date(year, month, day);
-            const dentalFormatted = formatDateDDMMYYYY(initialDate);
-
-            document.getElementById('val-activo-dental').innerText = dentalFormatted;
+        if (parsedDate) {
+            const formattedDate = formatDateMMDDYYYY(parsedDate);
+            document.getElementById('val-activo-dental').innerText = formattedDate;
 
             if (prod === 'dental') {
-                const visionDate = new Date(year, month + 6, day);
-                const visionFormatted = formatDateDDMMYYYY(visionDate);
+                const visionDate = new Date(parsedDate.getFullYear(), parsedDate.getMonth() + 6, parsedDate.getDate());
+                const visionFormatted = formatDateMMDDYYYY(visionDate);
                 document.getElementById('calculatedVisionDate').innerText = visionFormatted;
                 document.getElementById('val-activo-vision').innerText = visionFormatted;
             } else {
                 document.getElementById('val-activo-vision').innerText = "";
             }
         } else {
-            document.getElementById('calculatedVisionDate').innerText = "Seleccione la fecha inicial arriba";
-            document.getElementById('val-activo-dental').innerText = "";
-            document.getElementById('val-activo-vision').innerText = "";
+            document.getElementById('val-activo-dental').innerText = inputVal;
+            document.getElementById('calculatedVisionDate').innerText = "Ingrese una fecha válida arriba";
+            document.getElementById('val-activo-vision').innerText = inputVal;
         }
     }
 
     function updatePreview() {
         document.getElementById('val-nombre').innerText = document.getElementById('inputNombre').value;
+        document.getElementById('val-poliza').innerText = document.getElementById('inputPoliza').value;
         document.getElementById('val-prima').innerText = document.getElementById('inputPrima').value;
         document.getElementById('val-cobertura-tipo').innerText = document.getElementById('selectTipo').value;
         document.getElementById('val-cobertura-anual').innerText = document.getElementById('selectAnual').value;
@@ -469,14 +489,16 @@
 
     function resetAndNext() {
         document.getElementById('inputNombre').value = "";
+        document.getElementById('inputPoliza').value = "";
         document.getElementById('inputFechaDental').value = "";
         document.getElementById('inputPrima').value = "";
         document.getElementById('selectTipo').value = "";
         document.getElementById('selectAnual').value = "";
         document.getElementById('selectDeducible').value = "";
-        document.getElementById('calculatedVisionDate').innerText = "Seleccione la fecha inicial arriba";
+        document.getElementById('calculatedVisionDate').innerText = "Ingrese la fecha inicial arriba";
 
         document.getElementById('val-nombre').innerText = "";
+        document.getElementById('val-poliza').innerText = "";
         document.getElementById('val-activo-dental').innerText = "";
         document.getElementById('val-prima').innerText = "";
         document.getElementById('val-cobertura-tipo').innerText = "";
